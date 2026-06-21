@@ -7,7 +7,6 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>FlytLauncher</AssemblyName>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
     <RootNamespace>FlytLauncher</RootNamespace>
   </PropertyGroup>
 

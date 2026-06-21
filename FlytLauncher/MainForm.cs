@@ -14,6 +14,9 @@ public class MainForm : Form
     private static readonly string SampDllPath = Path.Combine(GameFolder, "samp.dll");
     private static readonly string SampCfgPath = Path.Combine(GameFolder, "samp.cfg");
 
+    // Файл с сохранённым ником — рядом с .exe лаунчера, не зависит от папки game
+    private static readonly string NicknameFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nickname.txt");
+
     private TextBox _nicknameBox = null!;
     private Button _playButton = null!;
     private Label _statusLabel = null!;
@@ -21,6 +24,7 @@ public class MainForm : Form
     public MainForm()
     {
         InitializeUi();
+        LoadSavedNickname();
         CheckInstallation();
     }
 
@@ -57,6 +61,7 @@ public class MainForm : Form
             MaxLength = 24,
             Font = new Font("Segoe UI", 11)
         };
+        _nicknameBox.TextChanged += OnNicknameTextChanged;
 
         _statusLabel = new Label
         {
@@ -85,6 +90,42 @@ public class MainForm : Form
         Controls.Add(_nicknameBox);
         Controls.Add(_statusLabel);
         Controls.Add(_playButton);
+    }
+
+    private void LoadSavedNickname()
+    {
+        try
+        {
+            if (File.Exists(NicknameFilePath))
+            {
+                string saved = File.ReadAllText(NicknameFilePath).Trim();
+                if (!string.IsNullOrWhiteSpace(saved))
+                {
+                    _nicknameBox.Text = saved;
+                }
+            }
+        }
+        catch
+        {
+            // Если файл повреждён или недоступен — просто игнорируем, поле останется пустым
+        }
+    }
+
+    private void OnNicknameTextChanged(object? sender, EventArgs e)
+    {
+        SaveNicknameToDisk(_nicknameBox.Text.Trim());
+    }
+
+    private void SaveNicknameToDisk(string nickname)
+    {
+        try
+        {
+            File.WriteAllText(NicknameFilePath, nickname);
+        }
+        catch
+        {
+            // Сохранение ника не критично для работы лаунчера — ошибку молча игнорируем
+        }
     }
 
     private void CheckInstallation()
