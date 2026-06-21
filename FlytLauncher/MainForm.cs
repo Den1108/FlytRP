@@ -11,6 +11,7 @@ public class MainForm : Form
     // Папка с игрой лежит рядом с .exe лаунчера
     private static readonly string GameFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SAMP");
     private static readonly string GtaExePath = Path.Combine(GameFolder, "gta_sa.exe");
+    private static readonly string SampExePath = Path.Combine(GameFolder, "samp.exe");
     private static readonly string SampDllPath = Path.Combine(GameFolder, "samp.dll");
     private static readonly string SampCfgPath = Path.Combine(GameFolder, "samp.cfg");
 
@@ -221,9 +222,10 @@ public class MainForm : Form
     private void CheckInstallation()
     {
         bool gtaFound = File.Exists(GtaExePath);
-        bool sampFound = File.Exists(SampDllPath);
+        bool sampExeFound = File.Exists(SampExePath);
+        bool sampDllFound = File.Exists(SampDllPath);
 
-        if (gtaFound && sampFound)
+        if (gtaFound && sampExeFound && sampDllFound)
         {
             _statusText.Text = "Установка найдена";
             SetStatusDotColor(Color.FromArgb(80, 220, 100));
@@ -231,7 +233,7 @@ public class MainForm : Form
         }
         else
         {
-            _statusText.Text = "Не найдено: SAMP/gta_sa.exe или SAMP/samp.dll";
+            _statusText.Text = "Не найдено: SAMP/samp.exe, gta_sa.exe или samp.dll";
             SetStatusDotColor(Color.FromArgb(230, 80, 80));
             _playButton.Enabled = false;
         }
@@ -308,8 +310,8 @@ public class MainForm : Form
     {
         var psi = new System.Diagnostics.ProcessStartInfo
         {
-            FileName = GtaExePath,
-            Arguments = $"-c {ServerIp}:{ServerPort}",
+            FileName = SampExePath,
+            Arguments = $"{ServerIp}:{ServerPort}",
             WorkingDirectory = GameFolder,
             UseShellExecute = true
         };
