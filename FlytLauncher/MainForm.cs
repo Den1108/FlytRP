@@ -9,7 +9,7 @@ public class MainForm : Form
     private const string ServerPort = "2306";
 
     // Папка с игрой лежит рядом с .exe лаунчера
-    private static readonly string GameFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "game");
+    private static readonly string GameFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SAMP");
     private static readonly string GtaExePath = Path.Combine(GameFolder, "gta_sa.exe");
     private static readonly string SampDllPath = Path.Combine(GameFolder, "samp.dll");
     private static readonly string SampCfgPath = Path.Combine(GameFolder, "samp.cfg");
@@ -19,7 +19,8 @@ public class MainForm : Form
 
     private TextBox _nicknameBox = null!;
     private Button _playButton = null!;
-    private Label _statusLabel = null!;
+    private Panel _statusDot = null!;
+    private Label _statusText = null!;
 
     public MainForm()
     {
@@ -31,65 +32,154 @@ public class MainForm : Form
     private void InitializeUi()
     {
         Text = "FlytRP Launcher";
-        ClientSize = new Size(420, 220);
-        FormBorderStyle = FormBorderStyle.FixedSingle;
-        MaximizeBox = false;
+        ClientSize = new Size(440, 320);
+        FormBorderStyle = FormBorderStyle.None;
         StartPosition = FormStartPosition.CenterScreen;
-        BackColor = Color.FromArgb(24, 24, 28);
+        BackColor = Color.FromArgb(18, 18, 22);
 
+        // --- Верхняя полоса (имитация заголовка окна, т.к. рамка убрана) ---
+        var topBar = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 36,
+            BackColor = Color.FromArgb(14, 14, 17)
+        };
+        topBar.MouseDown += (_, e) => DragWindow();
+
+        var closeButton = new Label
+        {
+            Text = "\u2715",
+            ForeColor = Color.FromArgb(150, 150, 155),
+            Font = new Font("Segoe UI", 11),
+            AutoSize = false,
+            Size = new Size(36, 36),
+            TextAlign = ContentAlignment.MiddleCenter,
+            Dock = DockStyle.Right,
+            Cursor = Cursors.Hand
+        };
+        closeButton.Click += (_, _) => Close();
+        closeButton.MouseEnter += (_, _) => closeButton.ForeColor = Color.FromArgb(230, 80, 80);
+        closeButton.MouseLeave += (_, _) => closeButton.ForeColor = Color.FromArgb(150, 150, 155);
+        topBar.Controls.Add(closeButton);
+
+        // --- Лого / заголовок ---
         var title = new Label
         {
-            Text = "FlytRP",
-            Font = new Font("Segoe UI", 20, FontStyle.Bold),
-            ForeColor = Color.FromArgb(0, 200, 255),
-            AutoSize = true,
-            Location = new Point(20, 20)
-        };
-
-        var nicknameLabel = new Label
-        {
-            Text = "Никнейм:",
+            Text = "FLYT",
+            Font = new Font("Segoe UI", 26, FontStyle.Bold),
             ForeColor = Color.White,
             AutoSize = true,
-            Location = new Point(20, 80)
+            Location = new Point(40, 56)
+        };
+
+        var titleAccent = new Label
+        {
+            Text = "RP",
+            Font = new Font("Segoe UI", 26, FontStyle.Bold),
+            ForeColor = Color.FromArgb(0, 200, 255),
+            AutoSize = true,
+            Location = new Point(132, 56)
+        };
+
+        var subtitle = new Label
+        {
+            Text = "ROLEPLAY SERVER",
+            Font = new Font("Segoe UI", 8.5f, FontStyle.Bold),
+            ForeColor = Color.FromArgb(110, 110, 118),
+            AutoSize = true,
+            Location = new Point(40, 100)
+        };
+
+        // --- Поле никнейма ---
+        var nicknameLabel = new Label
+        {
+            Text = "НИКНЕЙМ",
+            Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+            ForeColor = Color.FromArgb(110, 110, 118),
+            AutoSize = true,
+            Location = new Point(40, 144)
         };
 
         _nicknameBox = new TextBox
         {
-            Location = new Point(20, 100),
-            Width = 380,
+            Location = new Point(40, 164),
+            Width = 360,
+            Height = 40,
             MaxLength = 24,
-            Font = new Font("Segoe UI", 11)
+            Font = new Font("Segoe UI", 12),
+            BackColor = Color.FromArgb(28, 28, 33),
+            ForeColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle
         };
         _nicknameBox.TextChanged += OnNicknameTextChanged;
 
-        _statusLabel = new Label
+        // --- Статус установки (точка + текст) ---
+        var statusColor = Color.FromArgb(120, 120, 125);
+        _statusDot = new Panel
+        {
+            Size = new Size(8, 8),
+            Location = new Point(40, 222),
+            BackColor = Color.FromArgb(18, 18, 22),
+            Tag = statusColor
+        };
+        _statusDot.Paint += (_, e) =>
+        {
+            using var brush = new SolidBrush((Color)_statusDot.Tag!);
+            e.Graphics.FillEllipse(brush, 0, 0, _statusDot.Width, _statusDot.Height);
+        };
+
+        _statusText = new Label
         {
             Text = "Проверка установки...",
-            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(150, 150, 155),
             AutoSize = true,
-            Location = new Point(20, 135)
+            Location = new Point(56, 220)
         };
 
+        // --- Кнопка "Играть" ---
         _playButton = new Button
         {
-            Text = "Играть",
-            Location = new Point(20, 165),
-            Size = new Size(380, 40),
+            Text = "ИГРАТЬ",
+            Location = new Point(40, 250),
+            Size = new Size(360, 46),
             Font = new Font("Segoe UI", 12, FontStyle.Bold),
-            BackColor = Color.FromArgb(0, 160, 220),
+            BackColor = Color.FromArgb(0, 180, 230),
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Enabled = false
+            Enabled = false,
+            Cursor = Cursors.Hand
         };
         _playButton.FlatAppearance.BorderSize = 0;
+        _playButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 200, 255);
+        _playButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 150, 195);
         _playButton.Click += OnPlayClicked;
 
+        Controls.Add(topBar);
         Controls.Add(title);
+        Controls.Add(titleAccent);
+        Controls.Add(subtitle);
         Controls.Add(nicknameLabel);
         Controls.Add(_nicknameBox);
-        Controls.Add(_statusLabel);
+        Controls.Add(_statusDot);
+        Controls.Add(_statusText);
         Controls.Add(_playButton);
+    }
+
+    // --- DragWindow / WinAPI для перетаскивания окна без рамки ---
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool ReleaseCapture();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern int SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+
+    private const int WM_NCLBUTTONDOWN = 0xA1;
+    private const int HT_CAPTION = 0x2;
+
+    private void DragWindow()
+    {
+        ReleaseCapture();
+        SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
     }
 
     private void LoadSavedNickname()
@@ -135,16 +225,22 @@ public class MainForm : Form
 
         if (gtaFound && sampFound)
         {
-            _statusLabel.Text = "Установка найдена. Готово к игре.";
-            _statusLabel.ForeColor = Color.FromArgb(80, 220, 100);
+            _statusText.Text = "Установка найдена";
+            SetStatusDotColor(Color.FromArgb(80, 220, 100));
             _playButton.Enabled = true;
         }
         else
         {
-            _statusLabel.Text = "Не найдено: game/gta_sa.exe или game/samp.dll";
-            _statusLabel.ForeColor = Color.FromArgb(230, 80, 80);
+            _statusText.Text = "Не найдено: SAMP/gta_sa.exe или SAMP/samp.dll";
+            SetStatusDotColor(Color.FromArgb(230, 80, 80));
             _playButton.Enabled = false;
         }
+    }
+
+    private void SetStatusDotColor(Color color)
+    {
+        _statusDot.Tag = color;
+        _statusDot.Invalidate();
     }
 
     private void OnPlayClicked(object? sender, EventArgs e)
